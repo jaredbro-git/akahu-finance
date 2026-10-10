@@ -1,0 +1,27 @@
+# Secrets and personal data: never commit these
+.env
+.env.*
+!.env.example
+data/
+*.db
+*.sqlite3
+categories.csv
+payees.csv
+*.xlsx
+*.xls
+*.csv.bak
+
+# Local Claude Code settings (contain local file paths)
+.claude/settings.local.json
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store

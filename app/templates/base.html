@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Finance{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css?v={{ asset_version }}">
+  <!-- Apply "Hide numbers" before anything renders, so real amounts never flash on screen. -->
+  <script>try { if (localStorage.getItem("finance.private") === "1") document.documentElement.classList.add("private"); } catch {}</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div>
+        <h1>Finance</h1>
+        <p class="muted">
+          {% if status.last_synced %}Data pulled {{ status.last_synced.strftime("%-d %b, %-I:%M %p") }}{% else %}Not synced yet{% endif %}
+        </p>
+      </div>
+      <div class="topbar-actions">
+        <button type="button" id="privacy-toggle" class="secondary" aria-pressed="false">Hide numbers</button>
+        <form method="post" action="/refresh">
+          <button type="submit" {% if not status.refresh_available %}disabled title="Akahu allows one bank refresh per hour"{% endif %}>
+            Refresh from banks
+          </button>
+        </form>
+      </div>
+    </header>
+    <nav class="page-nav" aria-label="Pages">
+      {% for href, label in [("/", "Dashboard"), ("/spending", "Spending"), ("/projections", "Projections"), ("/other-accounts", "Other accounts"), ("/budget", "Budget"), ("/recurring", "Recurring")] %}
+      <a href="{{ href }}" {% if request.url.path == href %}aria-current="page"{% endif %}>{{ label }}</a>
+      {% endfor %}
+    </nav>
+
+    {% if notice %}<p class="banner">{{ notice }}</p>{% endif %}
+    {% if sync_error %}<p class="banner banner-error">Couldn't sync with Akahu: {{ sync_error }}</p>{% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+  <script src="/static/common.js?v={{ asset_version }}"></script>
+  {% if status.reload_in_seconds %}
+  <script>setTimeout(() => { window.location.href = window.location.pathname; }, {{ status.reload_in_seconds * 1000 }});</script>
+  {% endif %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>

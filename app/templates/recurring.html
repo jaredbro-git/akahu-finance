@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Recurring · Finance{% endblock %}
+
+{% block content %}
+{% if error %}
+<section class="card">
+  <h2>Can't read your subscriptions</h2>
+  <p>{{ error }}</p>
+</section>
+{% else %}
+
+{% set flagged = items | selectattr("status", "in", ["up", "stale", "missing"]) | list %}
+<section class="tiles">
+  <div class="tile">
+    <span class="tile-label">Budgeted per month</span>
+    <span class="tile-value">{{ totals.budget | money }}</span>
+    <span class="tile-sub">Subscriptions sheet</span>
+  </div>
+  <div class="tile">
+    <span class="tile-label">Actually costing per month</span>
+    <span class="tile-value">{{ totals.actual | money }}</span>
+    {% set d = totals.actual - totals.budget_active %}
+    <span class="tile-sub"><span class="diff {{ 'bad' if d > 0 else 'good' }}">{{ '▲' if d > 0 else '▼' }} <span class="private-mask">{{ d | abs | money }}</span></span> against the <span class="private-mask">{{ totals.budget_active | money }}</span> budgeted for the ones still being charged</span>
+  </div>
+  <div class="tile">
+    <span class="tile-label">Need a look</span>
+    <span class="tile-value">{{ flagged | length }} of {{ items | length }}</span>
+    <span class="tile-sub">Costing more, stopped or not found</span>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Subscriptions and insurance</h2>
+  <p class="muted">
+    From the Subscriptions sheet of your spreadsheet, matched to your payments by name and price.
+    “Actual” is the monthly cost averaged over the last 3 full months, so a fortnightly charge or several charges from one company add up correctly.
+  </p>
+  <div class="table-wrap">
+    <table class="recurring">
+      <thead>
+        <tr>
+          <th>Item</th><th>Category</th><th class="num">Budget / month</th><th class="num">Actual / month</th>
+          <th>Last charged</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in items %}
+        <tr class="row-{{ i.status }}">
+          <td>{{ i.name }}{% if i.payee and i.payee | lower != i.name | lower %}<br><small class="muted">as “{{ i.payee }}”</small>{% endif %}</td>
+          <td>{{ i.category }}</td>
+          <td class="num">{{ i.monthly | money }}</td>
+          <td class="num">
+            {% if i.actual_monthly is not none %}{{ i.actual_monthly | money }}{% else %}–{% endif %}
+            {% if i.prices | length > 1 %}<br><small class="muted private-mask">{{ i.prices | map("money") | join(" + ") }}</small>{% endif %}
+          </td>
+          <td>
+            {% if i.last_date %}{{ i.last_date.strftime("%-d %b %Y") }}<br><small class="muted"><span class="private-mask">{{ i.last_amount | money }}</span>, {{ i.cadence }}</small>{% else %}–{% endif %}
+          </td>
+          <td>
+            <span class="status status-{{ i.status }}">
+              {%- if i.status == "ok" %}✓ {% elif i.status == "up" %}▲ {% elif i.status == "down" %}▼ {% else %}! {% endif -%}
+              {{ i.message }}{% if i.change %} <span class="private-mask">({{ i.change | abs | money }})</span>{% endif %}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="muted small-print">
+    Not matching the right payment? Rename the item in your spreadsheet so it shares a word with the bank description,
+    e.g. “Wilson Parking” rather than “Car Park”.
+  </p>
+</section>
+
+<section class="card">
+  <h2>Other regular payments</h2>
+  <p class="muted">Payments that repeat at a steady price but aren't on your Subscriptions sheet. Some, like rent, are in your main budget instead.</p>
+  {% if other %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Paid to</th><th>How often</th><th class="num">Usually</th><th class="num">Per month</th><th>Last paid</th></tr></thead>
+      <tbody>
+        {% for o in other %}
+        <tr>
+          <td>{{ o.payee }}</td>
+          <td>{{ o.cadence | capitalize }} <small class="muted">({{ o.count }} times)</small></td>
+          <td class="num">{{ o.typical | money }}</td>
+          <td class="num">{{ o.monthly | money }}</td>
+          <td>{{ o.last_date.strftime("%-d %b %Y") }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p>None found.</p>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

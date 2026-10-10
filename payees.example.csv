@@ -1,0 +1,9 @@
+# Payee names: give one name to a payee the bank describes in several ways.
+# Copy this file to payees.csv (which isn't committed) and edit the rules to suit your transactions.
+# Each rule: text to look for in the description, payee or the other party's account number
+# (not case-sensitive), then the name to show. The first matching rule wins.
+# Start the text with re: to use a regular expression instead of plain text.
+# Changes apply on the next page load.
+match,name
+# Rent and shared costs: "TFR TO Alex rent", "12-3456-0123456-00 rent", "A B SMITH"
+re:\balex\b|12-3456-0123456-00|A B SMITH,Alex Smith

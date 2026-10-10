@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Spending · Finance{% endblock %}
+
+{% block content %}
+{% if not has_data %}
+  <section class="card">
+    <h2>No data yet</h2>
+    <p>Add your Akahu tokens to <code>.env</code> and reload this page.</p>
+  </section>
+{% else %}
+<form class="range-bar" method="get" action="/spending">
+  <label for="range">Showing</label>
+  <select id="range" name="range" onchange="this.form.submit()">
+    {% for months, label in range_options %}
+    <option value="{{ months }}" {% if months == range %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <noscript><button type="submit">Show</button></noscript>
+  <span class="muted">for every chart on this page. Each chart's Daily, Weekly, Fortnightly and Monthly buttons choose how it's grouped.</span>
+</form>
+
+<section class="grid">
+  <figure class="card wide">
+    <figcaption class="caption-row"><span>Spending by category, <span class="per">per month</span></span><span class="tabs period-switch" role="group" aria-label="Period"></span></figcaption>
+    <div class="chart"><canvas id="chart-spend-by-group"></canvas></div>
+    <p class="chart-hint muted">Click a bar to see what's in it.</p>
+  </figure>
+  <figure class="card wide">
+    <figcaption class="caption-row"><span>Income vs spending, <span class="per">per month</span></span><span class="tabs period-switch" role="group" aria-label="Period"></span></figcaption>
+    <div class="chart"><canvas id="chart-cashflow"></canvas></div>
+  </figure>
+  <figure class="card wide">
+    <figcaption>Top payees, {{ range_label | lower }}</figcaption>
+    <div class="chart chart-tall"><canvas id="chart-top-payees"></canvas></div>
+  </figure>
+</section>
+
+<dialog id="breakdown" class="breakdown" aria-labelledby="breakdown-title">
+  <div class="breakdown-head">
+    <div>
+      <h2 id="breakdown-title"></h2>
+      <p class="muted" id="breakdown-sub"></p>
+    </div>
+    <button type="button" class="breakdown-close" aria-label="Close">✕</button>
+  </div>
+  <div id="breakdown-body"></div>
+</dialog>
+{% endif %}
+
+<script id="chart-data" type="application/json">{{ charts | default({}) | tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/charts.js?v={{ asset_version }}"></script>
+<script src="/static/spending.js?v={{ asset_version }}"></script>
+{% endblock %}

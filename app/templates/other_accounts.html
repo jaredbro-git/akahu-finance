@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Other accounts · Finance{% endblock %}
+
+{% block content %}
+<section class="card">
+  <h2>Accounts Akahu can't see</h2>
+  <p class="muted">
+    Your KiwiSaver, investment account and student loan. They're included in net worth on the Dashboard
+    and in the projections whenever their switch is on. Each time you save, the new values are recorded
+    against today, so the net worth graph shows how they change over time.
+  </p>
+  <p class="banner" id="restore-banner" hidden>
+    These are the values you entered on the old Projections form, saved in this browser. Check them and press Save to keep them.
+  </p>
+
+  <form method="post" action="/other-accounts" class="other-accounts" data-empty="{{ '1' if empty else '0' }}">
+    {% for item, (label, sign, fields) in items.items() %}
+    <fieldset class="manual-group">
+      <legend>{{ label }}
+        {% if values[item].updated %}<small class="muted">· updated {{ values[item].updated | nice_date }}</small>{% endif %}
+      </legend>
+      <div class="controls">
+        {% for field, field_label in fields.items() %}
+        <label>{{ field_label }}
+          {% if field == "return" %}
+          <input type="number" step="0.1" name="{{ item }}.{{ field }}" data-old="{{ item }}-{{ field }}"
+                 value="{{ values[item][field] if values[item][field] is defined else '' }}" placeholder="{{ default_return }}">
+          {% else %}
+          <span class="input-prefix"><span>$</span><input type="number" step="0.01" min="0" name="{{ item }}.{{ field }}" data-old="{{ item }}-{{ field }}"
+                 value="{{ '%.2f' | format(values[item][field]) if values[item][field] is defined else '' }}" placeholder="0"></span>
+          {% endif %}
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endfor %}
+    <div class="form-actions">
+      <button type="submit">Save</button>
+      {% if total is not none %}<span class="muted">Together these add <span class="private-mask">{{ total | money }}</span> to your net worth.</span>{% endif %}
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // One-off: carry over values typed into the old Projections form (saved in this browser).
+  (() => {
+    const form = document.querySelector("form.other-accounts");
+    if (form.dataset.empty !== "1") return;
+    let old = null;
+    try { old = JSON.parse(localStorage.getItem("finance.manual")); } catch { /* ignore */ }
+    if (!old) return;
+    const names = { "ks-balance": "kiwisaver-balance", "ks-contrib": "kiwisaver-contrib", "ks-return": "kiwisaver-return",
+                    "inv-balance": "investment-balance", "inv-contrib": "investment-contrib", "inv-return": "investment-return",
+                    "sl-balance": "student_loan-balance", "sl-repay": "student_loan-repay" };
+    let found = false;
+    for (const [oldId, key] of Object.entries(names)) {
+      const input = form.querySelector(`[data-old="${key}"]`);
+      if (input && old[oldId]) { input.value = old[oldId]; found = true; }
+    }
+    if (found) document.getElementById("restore-banner").hidden = false;
+  })();
+</script>
+{% endblock %}

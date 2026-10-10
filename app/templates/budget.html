@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Budget · Finance{% endblock %}
+
+{% macro cell(actual, planned, judged=true) -%}
+  {%- set diff = actual - planned -%}
+  {%- if actual == 0 and planned == 0 -%}
+    <td class="num muted">–</td>
+  {%- elif not judged -%}
+    <td class="num">{{ actual | money }}</td>
+  {%- elif diff | abs <= on_budget -%}
+    <td class="num ok">{{ actual | money }} <span class="mark" aria-label="as budgeted">✓</span></td>
+  {%- else -%}
+    <td class="num off">{{ actual | money }}
+      <span class="diff {{ 'up' if diff > 0 else 'down' }}">{{ '▲' if diff > 0 else '▼' }} <span class="private-mask">{{ diff | abs | money }}</span></span>
+    </td>
+  {%- endif -%}
+{%- endmacro %}
+
+{% block content %}
+{% if error %}
+<section class="card">
+  <h2>Can't show the budget</h2>
+  <p>{{ error }}</p>
+</section>
+{% else %}
+
+{% set now = cycles[-1] %}
+{% set pay_now = income.actual[-1] %}
+<section class="tiles">
+  <div class="tile">
+    <span class="tile-label">This pay cycle <small>({{ now.start.strftime("%-d %b") }} – {{ now.end.strftime("%-d %b") }})</small></span>
+    <span class="tile-value">{{ pay_now | money }}</span>
+    {% if income.budget %}
+    {% set d = pay_now - income.budget %}
+    <span class="tile-sub">Pay, against <span class="private-mask">{{ income.budget | money }}</span> budgeted
+      {% if d | abs > on_budget %}<span class="diff {{ 'up' if d > 0 else 'down' }}">{{ '▲' if d > 0 else '▼' }} <span class="private-mask">{{ d | abs | money }}</span></span>{% endif %}
+    </span>
+    {% endif %}
+  </div>
+  {% set judged = rows | selectattr("actual") | selectattr("budget") | list %}
+  <div class="tile">
+    <span class="tile-label">Accounts topped up as budgeted <small>(this cycle)</small></span>
+    <span class="tile-value">
+      {%- set ns = namespace(n=0) -%}
+      {%- for r in judged -%}{%- if (r.actual[-1] - r.budget) | abs <= on_budget -%}{%- set ns.n = ns.n + 1 -%}{%- endif -%}{%- endfor -%}
+      {{ ns.n }} of {{ judged | length }}
+    </span>
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Budget vs actual, per pay cycle</h2>
+  </div>
+  <p class="muted">
+    Budget amounts come from the “{{ sheet }}” sheet of your spreadsheet. Each column is a pay cycle, payday to the day before
+    the next payday. Each row shows how much went into that account during the cycle.
+    <span class="legend"><span class="ok">✓ as budgeted</span> · <span class="warn">▲ more</span> · <span class="warn">▼ less</span></span>
+  </p>
+  <div class="table-wrap">
+    <table class="budget-grid">
+      <thead>
+        <tr>
+          <th>Budget line</th>
+          <th class="num">Budget</th>
+          {% for c in cycles %}
+          <th class="num {{ 'current' if c.current }}">{{ "This cycle" if c.current else c.start.strftime("%-d %b") }}<br><small class="muted">{{ c.start.strftime("%-d %b") }} – {{ c.end.strftime("%-d %b") }}</small></th>
+          {% endfor %}
+          <th class="num">Balance now</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="income-row">
+          <td>Pay<br><small class="muted">salary</small></td>
+          <td class="num">{{ income.budget | money if income.budget is not none else "–" }}</td>
+          {% for a in income.actual %}{{ cell(a, income.budget or 0, income.budget is not none) }}{% endfor %}
+          <td></td>
+        </tr>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.line }}{% if r.account and r.account | lower != r.line | lower %}<br><small class="muted">{{ r.account }}</small>{% endif %}</td>
+          <td class="num">{{ r.budget | money }}</td>
+          {% if r.actual %}
+            {% for a in r.actual %}{{ cell(a, r.budget, r.budget > 0) }}{% endfor %}
+            <td class="num">{{ r.balance | money }}</td>
+          {% else %}
+            <td colspan="{{ cycles | length + 1 }}" class="muted note-cell">{{ r.note }}</td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="muted small-print">
+    Lines with a $0 budget, like the credit card, show the amounts with no ✓ or ▲▼. For the card, those are your repayments.
+  </p>
+</section>
+
+{% if bills %}
+<section class="card">
+  <h2>Bills and costs in your budget</h2>
+  <p class="muted">Straight from your spreadsheet, for reference.</p>
+  <div class="grid two-tables">
+    {% for title, lines in bills.items() %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>{{ title }}</th><th class="num">Fortnight</th><th class="num">Year</th></tr></thead>
+        <tbody>
+          {% for name, amount in lines.items() %}
+          <tr><td>{{ name }}</td><td class="num">{{ amount | money }}</td><td class="num">{{ (amount * 26) | money }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

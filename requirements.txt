@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+httpx
+pandas
+jinja2
+python-dotenv
+tzdata
+openpyxl

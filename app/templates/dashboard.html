@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if not has_data %}
+  <section class="card">
+    <h2>No data yet</h2>
+    <p>Add your Akahu tokens to <code>.env</code> and reload this page.</p>
+  </section>
+{% else %}
+
+<section class="tiles">
+  <div class="tile">
+    <span class="tile-label">Net worth <small id="nw-tile-note"></small></span>
+    <span class="tile-value" id="nw-tile" data-bank="{{ tiles.net_worth }}" data-with-other="{{ tiles.net_worth_with_other }}"
+          data-other-names="{{ other_names | join(', ') }}">{{ tiles.net_worth | money(0) }}</span>
+  </div>
+  <div class="tile">
+    <span class="tile-label">Spent this month</span>
+    <span class="tile-value">{{ tiles.spend_this_month | money(0) }}</span>
+  </div>
+  <div class="tile">
+    <span class="tile-label">Income this month</span>
+    <span class="tile-value">{{ tiles.income_this_month | money(0) }}</span>
+  </div>
+  <div class="tile">
+    <span class="tile-label">Avg monthly spend <small>(last 6 months)</small></span>
+    <span class="tile-value">{{ tiles.avg_monthly_spend | money(0) }}</span>
+  </div>
+  <div class="tile">
+    <span class="tile-label">Savings rate <small>(last 12 months)</small></span>
+    <span class="tile-value">
+      {% if tiles.savings_rate_12m is not none %}{{ "%.0f" | format(tiles.savings_rate_12m * 100) }}%{% else %}–{% endif %}
+    </span>
+  </div>
+</section>
+
+<section class="grid">
+  <figure class="card wide">
+    <figcaption class="caption-row">
+      <span>Net worth <small class="muted">· one point per day you open the app</small></span>
+      {% if other_names %}
+      <label class="switch">
+        <input type="checkbox" id="include-other" role="switch">
+        <span class="switch-track" aria-hidden="true"></span>
+        Include {{ other_names[:-1] | join(", ") ~ " and " ~ other_names[-1] if other_names | length > 1 else other_names[0] }}
+      </label>
+      {% else %}
+      <a class="muted small-link" href="/other-accounts">Add KiwiSaver and investments</a>
+      {% endif %}
+    </figcaption>
+    <div class="chart"><canvas id="chart-net-worth"></canvas></div>
+  </figure>
+</section>
+
+<section class="card">
+  <h2>Accounts</h2>
+  <table>
+    <thead><tr><th>Account</th><th>Type</th><th>Bank</th><th class="num">Balance</th></tr></thead>
+    <tbody>
+      {% for a in accounts %}
+      <tr>
+        <td>{{ a.name }}{% if a.formatted_account %}<br><small class="muted private-mask">{{ a.formatted_account }}</small>{% endif %}</td>
+        <td>{{ a.type | title }}</td>
+        <td>{{ a.institution or "" }}</td>
+        <td class="num">{{ a.balance_current | money }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if pending %}
+<section class="card">
+  <h2>Pending</h2>
+  <table>
+    <thead><tr><th>Date</th><th>Description</th><th>Account</th><th class="num">Amount</th></tr></thead>
+    <tbody>
+      {% for t in pending %}
+      <tr>
+        <td>{{ t.date }}</td><td>{{ t.description }}</td><td>{{ t.account_name }}</td>
+        <td class="num {{ 'pos' if t.amount > 0 }}">{{ t.amount | money }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Recent transactions</h2>
+  <table>
+    <thead><tr><th>Date</th><th>Payee</th><th>Category</th><th>Account</th><th class="num">Amount</th></tr></thead>
+    <tbody>
+      {% for t in recent %}
+      <tr {% if t.is_internal %}class="internal" title="Looks like a transfer between your own accounts, so it's left out of spending and income"{% elif t.is_investment %}class="internal" title="Money to or from your investments, so it's left out of spending and income"{% endif %}>
+        <td>{{ t.date }}</td>
+        <td>{{ t.payee }}</td>
+        <td>{{ "Transfer" if t.is_internal else "Investment" if t.is_investment else t.category_group }}</td>
+        <td>{{ t.account_name }}</td>
+        <td class="num {{ 'pos' if t.amount > 0 }}">{{ t.amount | money }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+
+<script id="chart-data" type="application/json">{{ charts | default({}) | tojson }}</script>
+{% endblock %}
+
+
+{% block scripts %}
+<script src="/static/charts.js?v={{ asset_version }}"></script>
+<script src="/static/dashboard.js?v={{ asset_version }}"></script>
+{% endblock %}

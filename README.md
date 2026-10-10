@@ -5,10 +5,16 @@ It runs only on your machine, at http://127.0.0.1:8000.
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and paste in your two tokens from my.akahu.nz → Developers.
+1. Get your own Akahu tokens by setting up a free [Akahu personal app](https://developers.akahu.nz/docs/personal-apps):
+   - Create a profile at [my.akahu.nz](https://my.akahu.nz) and connect your bank and card accounts.
+   - Open the **Developers** page, agree to the Developer Terms and turn on multi-factor authentication.
+     This creates your personal app, which can only see your own accounts.
+   - The Developers page then shows two tokens: the **App ID Token** and the **User Access Token**.
+2. Copy `.env.example` to `.env` and paste the App ID Token into `AKAHU_APP_TOKEN` and the
+   User Access Token into `AKAHU_USER_TOKEN`.
    Optionally copy `categories.example.csv` and `payees.example.csv` to `categories.csv` and `payees.csv`.
-2. Run `./run.sh`. The first run creates `.venv` and installs the dependencies.
-3. Open http://127.0.0.1:8000.
+3. Run `./run.sh`. The first run creates `.venv` and installs the dependencies.
+4. Open http://127.0.0.1:8000.
 
 ## How data is fetched
 

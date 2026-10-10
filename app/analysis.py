@@ -20,7 +20,7 @@ UNCATEGORISED = "Uncategorised"
 
 
 def _normalise_account_number(value: str | None) -> tuple[int, ...] | None:
-    """'12-3456-0123456-00' and '12-3456-0123456-000' should compare equal."""
+    """'XX-XXXX-XXXXXXX-XX' and 'XX-XXXX-XXXXXXX-XXX' (2- and 3-digit suffixes) should compare equal."""
     if not isinstance(value, str):  # None, or NaN from pandas
         return None
     parts = re.findall(r"\d+", value)

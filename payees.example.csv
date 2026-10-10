@@ -5,5 +5,5 @@
 # Start the text with re: to use a regular expression instead of plain text.
 # Changes apply on the next page load.
 match,name
-# Rent and shared costs: "TFR TO Alex rent", "12-3456-0123456-00 rent", "A B SMITH"
-re:\balex\b|12-3456-0123456-00|A B SMITH,Alex Smith
+# One person who appears as "TFR TO Payer Name", "XX-XXXX-XXXXXXX-XX" or "PAYER NAME"
+re:\bpayer name\b|XX-XXXX-XXXXXXX-XX,Payer Name

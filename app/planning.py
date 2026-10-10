@@ -28,7 +28,7 @@ def _today() -> pd.Timestamp:
 # --- Budget vs actual -----------------------------------------------------------------
 
 def _match_account(line: str, accounts: pd.DataFrame) -> pd.Series | None:
-    """Pair a budget line ("Bills") with a bank account ("For Bills")."""
+    """Pair a budget line ("Bills") with a bank account ("Bills Account")."""
     active = accounts[accounts["status"] == "ACTIVE"]
     names = active["name"].str.lower()
     wanted = config.BUDGET_ACCOUNTS.get(line.lower(), line).lower()

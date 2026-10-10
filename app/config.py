@@ -34,7 +34,7 @@ INCOME_MATCH = os.getenv("INCOME_MATCH", "").strip()
 BUDGET_FILE = os.getenv("BUDGET_FILE", "").strip()
 BUDGET_SHEET = os.getenv("BUDGET_SHEET", "").strip()
 # Pairs a budget line with a bank account when their names don't line up,
-# e.g. "Buffer=Emergency, Spending=Spending secondary".
+# e.g. "Budget Line=Account Name, Other Line=Other Account".
 BUDGET_ACCOUNTS = dict(
     (k.strip().lower(), v.strip())
     for k, _, v in (p.partition("=") for p in os.getenv("BUDGET_ACCOUNTS", "").split(","))

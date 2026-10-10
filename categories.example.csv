@@ -6,8 +6,8 @@
 # The optional third column only matches that exact amount (money in or out).
 # Changes apply on the next page load.
 match,category,amount
-# A flatmate's fixed share of a shared cost (offsets what you pay)
-FLATMATE NAME,Transport,40
+# A fixed amount from one payer for a shared cost (offsets what you pay)
+PAYER NAME,Utilities,25
 # Housing: rent paid, rent and bond from flatmates (these offset what you pay)
 re:rent\b,Housing
 Bond,Housing
@@ -16,9 +16,9 @@ re:power|wifi|internet|\bgas\b,Utilities
 # Cash
 re:\bATM\b|ATM WD|^WITHDRAWAL\b|branch\b,Cash withdrawals
 # Overseas: anything charged in a foreign currency, and buying currency
-re:\b(AUD|USD|THB|CNY|EUR|GBP|JPY|SGD|FJD|IDR|VND|MYR|HKD|CAD|KRW|PHP|INR)\d+\s*$,Travel
-TRAVEL MONEYNZ,Travel
+re:\b(AUD|USD|EUR|GBP|JPY|CAD)\d+\s*$,Travel
+Currency Exchange,Travel
 # Loan repayments
-Car Repayment,Transport
+Loan Repayment,Transport
 # Interest charged or earned
 re:\bINT TO\b|interest,Interest

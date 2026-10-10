@@ -54,8 +54,8 @@ Edits show up on the next page load.
 
 - **Budget** uses the "Bank Accounts" table on the sheet named by `BUDGET_SHEET`. For the last 6
   pay cycles, it compares each line's fortnightly amount with what actually went into the bank
-  account of the same name (e.g. "Bills" → "For Bills"). If the names don't match, pair them
-  with `BUDGET_ACCOUNTS=Buffer=Emergency` (comma-separated).
+  account of the same name (e.g. "Bills" → "Bills Account"). If the names don't match, pair them
+  with `BUDGET_ACCOUNTS=Budget Line=Account Name` (comma-separated).
 - **Recurring** matches each item on the Subscriptions sheet to payments that share a word with
   its name and fit its price. The actual monthly cost is averaged over the last 3 full months.
   It also lists other payments that repeat at a steady price but aren't on the sheet.
@@ -72,7 +72,7 @@ Edits show up on the next page load.
   rest (rent, cash withdrawals, overseas purchases, bills paid by transfer) by matching text in
   the description. The first matching rule wins, and rules never override Akahu's own categories.
 - **Payee names:** `payees.csv` gives one name to a payee the bank describes in several ways
-  (e.g. "TFR TO Alex rent" and "12-3456-… rent" both become "Alex Smith"). Rules can match the
+  (e.g. "TFR TO Payer Name" and "XX-XXXX-XXXXXXX-XX" both become "Payer Name"). Rules can match the
   description or the other party's account number.
 - `categories.csv` and `payees.csv` hold your own rules, so they aren't committed. Start from
   `categories.example.csv` and `payees.example.csv`. Without them, no extra rules apply.
